@@ -1,0 +1,9 @@
+
+model/
+audio/test_audio/
+venv/
+output/
+__pycache__/
+*.pyc
+*.wav
+*.flac
