@@ -1,0 +1,74 @@
+ The 3 Metrics Explained
+
+  ---
+  WER — Word Error Rate
+
+  "Out of every 100 words spoken, how many did the model get wrong?"
+
+  Vosk said  : "growth and america's very strong pipe and conversion death"
+  Ground truth: "growth in the americas very strong pipeline conversion there"
+  Every wrong/missing/extra word = 1 error. WER = errors ÷ total words.
+
+  ┌─────┬──────────┬────────┐
+  │     │ Baseline │ Biased │
+  ├─────┼──────────┼────────┤
+  │ WER │ 52.82%   │ 52.61% │
+  └─────┴──────────┴────────┘
+
+  ~53% of all words are wrong — Vosk is imperfect on earnings call speech (accents, financial phrasing). The bias barely moves this, which is good
+   — it means the bias didn't break general transcription while fixing domain words.
+
+  ---
+  CER — Character Error Rate
+
+  Same idea but at the character level.
+
+  Useful because a word like "ebitda" that becomes "even day" is 6 wrong chars out of 6 — CER captures partial correctness that WER misses.
+
+  ┌─────┬──────────┬────────┐
+  │     │ Baseline │ Biased │
+  ├─────┼──────────┼────────┤
+  │ CER │ 28.51%   │ 28.43% │
+  └─────┴──────────┴────────┘
+
+  Lower than WER because many words are mostly right (e.g. "billings" → "billings" is 0 char errors even if the sentence WER counts it once).
+  Again, barely moves with bias — good sign.
+
+  ---
+  KRR — Keyword Recall Rate ⭐ (the important one)
+
+  "Of the finance terms that were actually spoken, what % did the model successfully transcribe?"
+
+  This is the whole point of the experiment. We have 30 finance words in bias_words_finance.txt. For each audio clip, we check: was this term
+  spoken? And did the model write it correctly?
+
+  Term spoken: "ebitda"
+  Baseline wrote: "even day"   → MISS (0 points)
+  Biased wrote:   "ebitda"     → HIT  (1 point)
+
+  ┌─────┬───────────────┬────────────────┐
+  │     │   Baseline    │     Biased     │
+  ├─────┼───────────────┼────────────────┤
+  │ KRR │ 42.86% (6/14) │ 71.43% (10/14) │
+  └─────┴───────────────┴────────────────┘
+
+  Out of 14 times a finance term was spoken across the 150 clips:
+  - Baseline caught 6 of them correctly
+  - Biased caught 10 — recovering 4 extra terms the model was completely missing
+
+  ---
+  How to See the Progress
+
+  The key insight is the trade-off:
+
+  WER  changed by   -0.20pp   — basically zero, general quality unchanged
+  CER  changed by   -0.08pp   — basically zero
+  KRR  changed by  +28.57pp   — huge jump, domain terms recovered
+
+  Think of it like this: you hired a general-purpose transcriptionist and gave them a finance glossary. Their overall accuracy stayed the same,
+  but their ability to correctly write down the technical terms went from 43% to 71%. That's the value of vocabulary biasing.
+
+  The 4 specific recoveries were:
+  1. "pipe and" → "pipeline" (happened twice)
+  2. "even day" → "ebitda"
+  3. "tailings" → "tailwinds"

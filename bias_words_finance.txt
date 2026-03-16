@@ -1,0 +1,33 @@
+# Finance domain bias vocabulary — earnings-call terminology that
+# Vosk's general-English model consistently mis-transcribes.
+# Used for: (1) SetGrammar / post-processing bias  (2) KRR evaluation.
+ebitda
+capex
+opex
+gaap
+eps
+accretive
+dilutive
+synergies
+buyback
+deleverage
+headwinds
+tailwinds
+sequential
+backlog
+divestiture
+restructuring
+impairment
+amortization
+depreciation
+reconciliation
+liquidity
+leverage
+guidance
+covenants
+refinancing
+goodwill
+dividends
+valuation
+consensus
+pipeline

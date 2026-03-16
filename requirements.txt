@@ -1,3 +1,6 @@
 vosk
 soundfile
 numpy
+datasets
+jiwer
+pandas
