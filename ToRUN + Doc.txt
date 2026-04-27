@@ -1,0 +1,76 @@
+ So can I run this pipeline now? If yes, then I need you to gimme the steps to run it and see the output, also a doc for me to understand what
+is doing what , if claude.md is that file then lemme know!
+
+● The background notification is for the old failed attempt — we already fixed and ran everything successfully. Yes, CLAUDE.md is exactly that doc
+   file — it was updated with the full finance pipeline. Here are your run steps:
+
+  ---
+  Run the Finance Pipeline
+
+  Open a terminal in C:\Users\bhaav\VOSK_2.0 and run these 4 steps in order:
+
+  # Step 1 — Download 150 real earnings-call audio clips from HuggingFace
+  # Creates: audio/finance/*.wav  +  audio/finance_gt/ground_truth.json
+  python scripts/download_earnings22.py
+
+  # Step 2 — Run Vosk with NO bias (baseline)
+  # Creates: output/finance/predictions_baseline.json
+  python scripts/transcribe_finance.py
+
+  # Step 3 — Apply vocabulary bias (post-processing)
+  # Creates: output/finance/predictions_biased.json
+  python scripts/transcribe_finance_biased.py
+
+  # Step 4 — Compare WER / CER / KRR and print table + examples
+  # Creates: output/finance/evaluation_results.csv
+  python scripts/evaluate_finance.py
+
+  Steps 1 and 2 are the slow ones (network + model inference). Steps 3 and 4 are instant.
+
+  ▎ Since you've already run the whole pipeline once, you only need to run Step 4 again if you just want to see the results — the JSON files are
+  already on disk.
+
+  ---
+  What Each File Does
+
+  ┌──────────────────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │             File             │                                                What it does                                                 │
+  ├──────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ download_earnings22.py       │ Streams 150 audio chunks from the Earnings-22 HuggingFace dataset, converts each to 16kHz mono WAV (the     │
+  │                              │ exact format Vosk needs), and saves ground-truth transcripts                                                │
+  ├──────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ transcribe_finance.py        │ Feeds every WAV to Vosk with zero domain knowledge — plain baseline transcription                           │
+  ├──────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │                              │ Takes the baseline JSON and applies two correction layers: ① a regex confusion map for known Vosk           │
+  │ transcribe_finance_biased.py │ misrecognitions ("even day" → "ebitda", "pipe and" → "pipeline", etc.) and ② fuzzy string matching to catch │
+  │                              │  spelling variants                                                                                          │
+  ├──────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ evaluate_finance.py          │ Computes WER, CER, and KRR before/after bias, prints the comparison table, and saves a per-sample CSV       │
+  ├──────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ bias_words_finance.txt       │ The 30 finance vocabulary terms used both for biasing and for KRR measurement                               │
+  └──────────────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  ---
+  Yes — CLAUDE.md is your documentation
+
+  Open CLAUDE.md in the repo root. It has:
+  - Full pipeline architecture diagram
+  - Explanation of why SetGrammar() was replaced with post-processing
+  - Table of all key files
+  - Run commands for both the original LibriSpeech pipeline and the new finance pipeline
+
+  The results you'll see when you run Step 4:
+
+  =================================================================
+    Finance ASR Biasing Evaluation - Earnings-22 (150 samples)
+  =================================================================
+    Metric          Baseline        Biased            Change
+  -----------------------------------------------------------------
+    WER               52.82%        52.61%       v0.20pp [+]
+    CER               28.51%        28.43%       v0.08pp [+]
+    KRR               42.86%        71.43%      ^28.57pp [+]
+  =================================================================
+    Keyword hits: 6/14 baseline  ->  10/14 biased
+
+  KRR jumps from 43% → 71% — that's the core result. WER and CER barely move, showing the bias recovers domain vocabulary without degrading
+  general transcription quality.

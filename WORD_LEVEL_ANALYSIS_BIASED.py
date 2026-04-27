@@ -28,5 +28,4 @@ for file in predictions:
 
 with open("C:/Desktop/PROJECT_PART_II/FinanceEarnings22_Execution/output/word_error_analysis_biased.json", "w") as f:
     json.dump(analysis, f, indent=2)
-
 print("Word-level error analysis saved.")

@@ -1,0 +1,59 @@
+I'm working on a speech recognition project using the Vosk model 
+(vosk-model-small-en-us-0.15) to generate transcripts. The model 
+struggles with domain-specific words, and I want to demonstrate how 
+a bias/vocabulary list improves accuracy on real-world audio.
+
+Here's what I need you to do end-to-end:
+
+1. **Explore the project** – Read the existing codebase to understand 
+   the current pipeline (how audio is loaded, how Vosk is invoked, 
+   how transcripts are output).
+
+2. **Pick a domain** – Choose a well-defined domain with clear 
+   domain-specific vocabulary (e.g., medical, legal, cricket, finance, 
+   cooking). Pick whichever you think will show the most dramatic 
+   improvement with a bias list, and where a good real-world dataset 
+   is available.
+
+3. **Source a real-world dataset** – Find a moderate-sized open 
+   dataset of real audio samples for that domain. Good sources include 
+   HuggingFace datasets, Mozilla Common Voice (filtered by topic), or 
+   other domain-specific corpora. Do NOT synthesize audio — use only 
+   real recordings. Aim for a dataset that is moderate in size (not 
+   tiny, not enormous — enough to be statistically meaningful but 
+   manageable to run locally).
+
+4. **Preprocess the dataset** – Convert all audio to exactly what 
+   Vosk requires: PCM WAV, 16kHz sample rate, 16-bit, mono channel. 
+   Use ffmpeg or pydub for conversion. Validate the format before 
+   feeding to the model.
+
+5. **Baseline transcription** – Run the Vosk pipeline on the dataset 
+   with no bias list. Record transcripts and evaluate using three 
+   metrics:
+   - **WER** (Word Error Rate) — overall word-level accuracy
+   - **CER** (Character Error Rate) — character-level accuracy, 
+     fairer for long/rare domain words that are partially correct
+   - **KRR** (Keyword Recall Rate) — what % of domain-specific 
+     terms from a predefined keyword list were correctly transcribed; 
+     this is the most important metric for this experiment
+   Use `jiwer` for WER/CER and implement KRR manually against a 
+   list of domain keywords you define.
+
+6. **Build a bias list** – Create a vocabulary list of domain-specific 
+   terms. Integrate it using Vosk's KaldiRecognizer grammar feature 
+   (passing a JSON word list as the second argument to 
+   KaldiRecognizer). If the grammar API is too restrictive for fluent 
+   speech, fall back to a post-processing substitution map — either 
+   approach is acceptable.
+
+7. **Biased transcription** – Re-run the pipeline with the bias list 
+   active. Compute all three metrics again (WER, CER, KRR).
+
+8. **Compare and report** – Print a clear before/after comparison 
+   table showing WER, CER, and KRR without vs. with the bias list, 
+   along with a few example transcript pairs highlighting where domain 
+   words improved.
+
+Keep the implementation clean and modular with brief comments at 
+each stage. Read the existing codebase before writing anything new.
